@@ -1,3 +1,5 @@
+## Creating the keyspace and Cassandra table 
+
 ```
 CREATE KEYSPACE fraud
 	WITH REPLICATION = {
@@ -6,7 +8,7 @@ CREATE KEYSPACE fraud
 	}
 	AND DURABLE_WRITES = true;
 ```
-
+## Table 
 ```
 CREATE TABLE fraud_detection (
    step INT,
@@ -32,10 +34,10 @@ FROM 'fraud_detection.csv'
 WITH DELIMITER=',' AND HEADER=TRUE;
 ```
 
-### Now the data is loaded into the table
-
+## Now the data is loaded into the table
+```
 SELECT * FROM fraud_detection LIMIT 10;
-
+```
 
 
 
