@@ -1,7 +1,19 @@
 ## To launch producer script
 
 ```
-spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.0.1,com.datastax.spark:spark-cassandra-connector_2.12:3.0.0  producer.py 
+spark-submit \
+--master local[*] \
+--deploy-mode client \
+--num-executors 2 \
+--executor-memory 2G \
+--executor-cores 2 \
+--driver-memory 1G \
+--packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.0.1,com.datastax.spark:spark-cassandra-connector_2.12:3.0.0 \
+--conf spark.sql.shuffle.partitions=4 \
+
+producer.py
+
+
 ```
 
 # Producer Code breakdown 
