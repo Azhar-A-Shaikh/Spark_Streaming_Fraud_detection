@@ -34,7 +34,18 @@ producer.py
 ## To launch consumer script
 
 ```
-spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.0.1 consumer.py 
+spark-submit \
+--master local[*] \
+--deploy-mode client \
+--num-executors 2 \
+--executor-memory 2G \
+--executor-cores 2 \
+--driver-memory 1G \
+--packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.0.1 \
+--conf spark.sql.shuffle.partitions=4 \
+consumer.py
+
+
 ```
 # Consumer code breakdown 
 
