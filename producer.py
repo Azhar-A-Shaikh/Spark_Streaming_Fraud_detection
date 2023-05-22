@@ -73,26 +73,34 @@ def sendDataToKafkaTopic(kafkaBootstrapServer, topicName, dataFrame:DataFrame):
     logging.info(f"Data has been written to Kafka topic: {topicName}")
 
 
-
-if __name__=="__main__":
-    # Read data from cassandra database
-    df = dataFrameFromCassandaDbTable(sparkSession=sparkSesison,table=TABLE,keyspace=KEYSPACE)
+if __name__ == "__main__":
+    # Read data from Cassandra database
+    df = dataFrameFromCassandaDbTable(sparkSession=sparkSesison, table=TABLE, keyspace=KEYSPACE)
     
-    #Print the schema 
+    # Print the schema
     df.printSchema()
 
-    #showing dataframe 
+    # Showing dataframe
     df.show(truncate=False)
     nRows = df.count()
     columns = df.columns
     logging.info(f"{TABLE} has columns: [{columns}]")
     logging.info(f"{nRows} rows found in table: {KEYSPACE}.{TABLE}")
 
-    if nRows==0:
-        logging.info(f"No data found hence data will not be written to kafka topic") 
+    if nRows == 0:
+        logging.info("No data found, hence data will not be written to Kafka topic")
     else:
-        sendDataToKafkaTopic(kafkaBootstrapServer=KAFKA_BOOTSTRAP_SERVER,
-                             topicName=KAFKA_TOPIC,
-                             dataFrame=df
-                             )
+        # Select only the required columns
+        df = df.select(
+            col("step"), col("type"), col("amount"), col("name_orig"), col("old_balance_org"),
+            col("new_balance_orig"), col("name_dest"), col("old_balance_dest"),
+            col("new_balance_dest"), col("is_fraud"), col("is_flagged_fraud")
+        )
+        
+        # Write data to Kafka topic
+        sendDataToKafkaTopic(
+            kafkaBootstrapServer=KAFKA_BOOTSTRAP_SERVER,
+            topicName=KAFKA_TOPIC,
+            dataFrame=df
+        )
        
