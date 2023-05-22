@@ -24,7 +24,6 @@ CASSANDRA_PASSWORD="cassandra"
 
 PROCESSING_INTERVAL = f"5 seconds"
 
-#Maining log 
 #log file name
 LOG_FILE_NAME = f"{datetime.now().strftime('%m%d%Y__%H%M%S')}.log"
 #log directory
@@ -77,20 +76,40 @@ def processEachInterval(df:DataFrame,epoch_id):
         df.show(truncate=False)
         df.write.mode("append").parquet(dataSink)
 
-if __name__=="__main__":
-    df = (sparkSesison
-    .readStream
-    .format("kafka")
-    .option("kafka.bootstrap.servers",KAFKA_BOOTSTRAP_SERVER)
-    .option("subscribe",KAFKA_TOPIC)
-    .option("startingOffsets","earliest")
-    .load()
-    )
 
-    df.printSchema()
-    query = (df.writeStream
-             .trigger(processingTime=PROCESSING_INTERVAL)
-             .foreachBatch(processEachInterval)
-             .start()
-            )
+if __name__ == "__main__":
+    # Create SparkSession
+    spark = SparkSession.builder.appName("Consumer").getOrCreate()
+
+    # Read data from Kafka topic
+    df = spark.readStream \
+        .format("kafka") \
+        .option("kafka.bootstrap.servers", KAFKA_BOOTSTRAP_SERVER) \
+        .option("subscribe", KAFKA_TOPIC) \
+        .option("startingOffsets", "earliest") \
+        .load()
+    
+    # Extract required columns from Kafka value
+    df = df.selectExpr("CAST(value AS STRING) as raw_value")
+    schema = StructType([
+        StructField("step", IntegerType()),
+        StructField("type", StringType()),
+        StructField("amount", DoubleType()),
+        StructField("name_orig", StringType()),
+        StructField("old_balance_org", DoubleType()),
+        StructField("new_balance_orig", DoubleType()),
+        StructField("name_dest", StringType()),
+        StructField("old_balance_dest", DoubleType()),
+        StructField("new_balance_dest", DoubleType()),
+        StructField("is_fraud", IntegerType()),
+        StructField("is_flagged_fraud", IntegerType())
+    ])
+    df = df.select(from_json(df.raw_value, schema).alias("data")).select("data.*")
+
+    # Process the data
+    query = df.writeStream \
+        .outputMode("append") \
+        .format("console") \
+        .start()
+
     query.awaitTermination()
