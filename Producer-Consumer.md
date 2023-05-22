@@ -8,11 +8,10 @@ spark-submit \
 --executor-memory 2G \
 --executor-cores 2 \
 --driver-memory 1G \
---packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.0.1,com.datastax.spark:spark-cassandra-connector_2.12:3.0.0 \
+--packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.0.1, com.datastax.spark:spark-cassandra-connector_2.12:3.0.0 \
 --conf spark.sql.shuffle.partitions=4 \
-
+--conf spark.sql.autoBroadcastJoinThreshold=52428800 \
 producer.py
-
 
 ```
 
@@ -43,10 +42,11 @@ spark-submit \
 --driver-memory 1G \
 --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.0.1 \
 --conf spark.sql.shuffle.partitions=4 \
+--conf spark.sql.autoBroadcastJoinThreshold=52428800 \
 consumer.py
 
-
 ```
+
 # Consumer code breakdown 
 
 * The PROCESSING_INTERVAL variable is declared, specifying the interval at which the streaming data will be processed.
